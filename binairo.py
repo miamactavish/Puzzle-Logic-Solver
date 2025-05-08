@@ -111,6 +111,43 @@ def fill_gaps():
 
     return has_change
 
+# find the number of times a piece occurs in a given row.
+def get_row_count(piece, row):
+    count = 0
+    for p in board[row]:
+        if piece == p:
+            count += 1
+    return count
+
+# find the number of times a piece occurs in a given row.
+def get_col_count(piece, col):
+    count = 0
+    for i in range(height):
+        if piece == board[i][col]:
+            count += 1
+    return count
+
+# if a row already has all of one piece placed, fill the rest with the remaining piece
+def fill_complete_rows(piece):
+    has_change = False
+    for i in range(height):
+        if get_row_count(piece, i) == (width / 2.0):
+            for j in range(width):
+                if board[i][j] == ' ':
+                    board[i][j] = get_opposite(piece)
+                    has_change = True
+    return has_change
+
+# if a column already has all of one piece placed, fill the rest with the remaining piece
+def fill_complete_columns(piece):
+    has_change = False
+    for i in range(width):
+        if get_col_count(piece, i) == (height / 2.0):
+            for j in range(height):
+                if board[j][i] == ' ':
+                    board[j][i] = get_opposite(piece)
+                    has_change = True
+    return has_change
 
 #task, token = (get_puzzle())
 
@@ -141,11 +178,8 @@ print()
 # find places with two consecutive pieces of the same colour
 has_change = True
 while has_change:
-    has_change = fill_around_2()
-
-has_change = True
-while has_change:
-    has_change = fill_gaps()
+    has_change = fill_around_2() or fill_gaps() or fill_complete_rows('0') or fill_complete_rows('1') or \
+                 fill_complete_columns('0') or fill_complete_columns('1')
 
 for row in board:
     print(row)
