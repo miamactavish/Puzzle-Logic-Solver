@@ -13,20 +13,35 @@ for i in range(height):
       
 
 get_puzzle_url = (
-    f"https://www.puzzles-mobile.com/binairo/random/{curr_size}/get?fromSolved="
+    #f"https://www.puzzles-mobile.com/binairo/random/{curr_size}/get?fromSolved="
+    f"https://www.puzzle-binairo.com/binairo-{curr_size}"
+
 )
-post_puzzle_url = f"https://www.puzzles-mobile.com/slant/random/{curr_size}"
+post_puzzle_url = f"https://www.puzzles-mobile.com/binairo/random/{curr_size}"
 
 def get_puzzle() -> tuple[str, str]:
-  """returns task string and a token, which you need to link the retrieved puzzle to your solution submission later"""
-  resp: dict[str, str] = requests.get(
-    url=get_puzzle_url
-  ).json()
-  print(resp)
-  print(requests.get(
-    url=get_puzzle_url
-  ))
-  return resp["task"], resp["token"]
+    # Send a POST request to get a new puzzle
+    resp = requests.post(
+        url=get_puzzle_url,
+        data={
+        "new": "   New Puzzle   "
+        },
+        cookies={
+        "api-token": "To9fqzSnyTdA9kOxjYfFRznIlD3KLjAdVbMiBeXY8Y0PX6uyIeVZXBVuDQmy",
+        }
+    ),
+
+    # The response we get is the entire html for a page with a new puzzle.
+    # Parse it to find the puzzle data.
+    html = resp[0].text
+    task_index = html.find("var task = '") + len("var task = '")
+    task = ""
+    while html[task_index] != "'":
+        task += html[task_index]
+        task_index += 1
+    
+    print(task)
+    return task
 
 def submit(token: str, solution: str) -> bool:
   """submits the solution for checking"""
@@ -34,7 +49,8 @@ def submit(token: str, solution: str) -> bool:
     url=post_puzzle_url,
     data={
       "token": token,
-      "solution": solution
+      "solution": solution,
+      "robot": "1"
     },
   ).json()
   print(resp) # testing purposes
@@ -149,10 +165,7 @@ def fill_complete_columns(piece):
                     has_change = True
     return has_change
 
-#task, token = (get_puzzle())
-
-#TEMP: overwrite to work w a specific puzzle
-task = 'b1a1a0e00a0j1d0c0'
+task = (get_puzzle())
 
 cur_index = 0
 # parse puzzle from get request
@@ -183,3 +196,10 @@ while has_change:
 
 for row in board:
     print(row)
+
+solution = ""
+for row in board:
+    for piece in row:
+        solution += piece
+
+#submit(token, solution)
