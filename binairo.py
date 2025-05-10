@@ -19,7 +19,7 @@ get_puzzle_url = (
 )
 post_puzzle_url = f"https://www.puzzles-mobile.com/binairo/random/{curr_size}"
 
-def get_puzzle() -> tuple[str, str]:
+def get_puzzle():
     # Send a POST request to get a new puzzle
     resp = requests.post(
         url=get_puzzle_url,
@@ -29,11 +29,10 @@ def get_puzzle() -> tuple[str, str]:
         cookies={
         "api-token": "To9fqzSnyTdA9kOxjYfFRznIlD3KLjAdVbMiBeXY8Y0PX6uyIeVZXBVuDQmy",
         }
-    ),
-
+    )
     # The response we get is the entire html for a page with a new puzzle.
     # Parse it to find the puzzle data.
-    html = resp[0].text
+    html = resp.text
     task_index = html.find("var task = '") + len("var task = '")
     task = ""
     while html[task_index] != "'":
@@ -41,18 +40,28 @@ def get_puzzle() -> tuple[str, str]:
         task_index += 1
     
     print(task)
-    return task
 
-def submit(token: str, solution: str) -> bool:
+    param_index = html.find('name=" param " value="') + len('name=" param " value="')
+    while html[param_index] != '"':
+        param += html[param_index]
+        param_index += 1
+
+    return task, param
+
+def submit(token, solution):
   """submits the solution for checking"""
   resp = requests.post(
-    url=post_puzzle_url,
-    data={
-      "token": token,
-      "solution": solution,
-      "robot": "1"
-    },
-  ).json()
+        url=get_puzzle_url,
+        data={
+        "param": param,
+        "ansH": solution,
+        "robot": "1",
+        "ready": "1"
+        },
+        cookies={
+        "api-token": "To9fqzSnyTdA9kOxjYfFRznIlD3KLjAdVbMiBeXY8Y0PX6uyIeVZXBVuDQmy",
+        }
+    )
   print(resp) # testing purposes
   return resp["status"]
 
