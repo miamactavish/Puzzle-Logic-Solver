@@ -156,7 +156,84 @@ def fill_complete_columns(piece):
                     has_change = True
     return has_change
 
-task, param = (network.get_puzzle())
+'''
+A "guaranteed placement" is a row where you may not know exactly where a piece goes,
+but information about the remaining amount of pieces tells you a *range* of spaces within which
+it must be placed. For example in the following row:
+1 - - 0 1 - 0 1 | 2, 1
+the remaining 1 must go in one of the two leftmost empty spaces, otherwise you will get
+three consecutive 0's in a row. 
+'''
+def find_guaranteed_placements_row():
+    has_change = False
+    for i in range(height):
+        piece = ""
+        rem_0 = get_remaining_row("0", i)
+        rem_1 = get_remaining_row("1", i)
+        if rem_0 == 1 and rem_1 > 1:
+            piece = "0"
+        elif rem_0 > 1 and rem_1 == 1:
+            piece = "1"
+        else:
+            continue
+        
+        # find the starting place of a forced placement range
+        starts = []
+        opposite = get_opposite(piece)
+        for j in range(width - 2):
+            if board[i][j] != piece and board[i][j+1] != piece and board[i][j+2] != piece:
+                starts.append(j)
+
+        for start in starts:
+            print("Has row? Start at " + str(start))
+            print(board[i])
+            for j in range(width):
+                if j == start or j == start + 1 or j == start + 2 or board[i][j] != " ":
+                    continue
+                else:
+                    print("Has row " + str(i))
+                    print(board[i])
+                    board[i][j] = opposite
+                    has_change = True
+                    print(board[i])
+
+    return has_change
+            
+
+def find_guaranteed_placements_col():
+    has_change = False
+    for j in range(width):
+        piece = ""
+        rem_0 = get_remaining_col("0", j)
+        rem_1 = get_remaining_col("1", j)
+        if rem_0 == 1 and rem_1 > 1:
+            piece = "0"
+        elif rem_0 > 1 and rem_1 == 1:
+            piece = "1"
+        else:
+            continue
+        
+        # find the starting place of a forced placement range
+        starts = []
+        opposite = get_opposite(piece)
+        for i in range(height - 2):
+            if board[i][j] != piece and board[i+1][j] != piece and board[i+2][j] != piece:
+                starts.append(i)
+
+        for start in starts:
+            for i in range(height):
+                if i == start or i == start + 1 or i == start + 2 or board[i][j] != " ":
+                    continue
+                else:
+                    print("Has col " + str(i))
+                    #print(board[i])
+                    board[i][j] = opposite
+                    has_change = True
+                    #print(board[i])
+
+    return has_change
+
+task, param = (network.get_puzzle(f"https://www.puzzle-binairo.com/binairo-10x10-hard"))
 
 cur_index = 0
 # parse puzzle from get request
@@ -182,7 +259,9 @@ print_board()
 has_change = True
 while has_change:
     has_change = fill_around_2() or fill_gaps() or fill_complete_rows('0') or fill_complete_rows('1') or \
-                 fill_complete_columns('0') or fill_complete_columns('1')
+                 fill_complete_columns('0') or fill_complete_columns('1') or \
+                    find_guaranteed_placements_row() or find_guaranteed_placements_col()
+
 
 print_board()
 
