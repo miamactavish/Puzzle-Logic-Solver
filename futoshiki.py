@@ -1,7 +1,8 @@
 import math
 import network
 
-curr_size = 4
+get_url = "https://www.puzzle-futoshiki.com/futoshiki-7x7-easy/"
+curr_size = 7
 width = curr_size
 height = curr_size
 board = []
@@ -33,20 +34,26 @@ def print_board():
             row_str += " " + piece + " "
 
             # add > or < symbols
-            if symbols[i][j] == '^' or symbols[i][j] == 'v':
-                row_str += " "
+            if '>' in symbols[i][j]:
+                row_str += '>'
+            elif '<' in symbols[i][j]:
+                row_str += '<'
             else:
-                row_str += symbols[i][j]
+                row_str += " "
 
         print(row_str)
 
         row_str = ""
         # Add ^ or v symbols
         for j in range(len(row)):
-            if symbols[i][j] == '>' or symbols[i][j] == '<':
-                row_str += "    "
+            if '^' in symbols[i][j]:
+                row_str += " ^  "
+            
+            elif 'v' in symbols[i][j]:
+                row_str += " v  "
+            
             else:
-                row_str += " " + symbols[i][j] + "  "
+                row_str += "    "
         print(row_str)
 
     print()
@@ -85,7 +92,7 @@ def find_only_option_row(row, num):
         if num in notes[row][i]:
             count += 1
             index = i
-            if count > 0:
+            if count > 1:
                 return False
         if board[row][i] == num:
             return False
@@ -106,7 +113,7 @@ def find_only_option_col(col, num):
         if num in notes[i][col]:
             count += 1
             index = i
-            if count > 0:
+            if count > 1:
                 return False
         if board[i][col] == num:
             return False
@@ -142,27 +149,27 @@ def update_comparison_notes(row, col):
     #Find where this element is greater than others
     smallest = -1
     updating = False
-    if symbols[row][col] == '>':
+    if '>' in symbols[row][col]:
         s = get_extreme(row, col+1, 0)
         if s > smallest:
             smallest = s
             updating = True
 
-    if symbols[row][col] == 'v':
+    if 'v' in symbols[row][col]:
         s = get_extreme(row+1, col, 0)
         if s > smallest:
             smallest = s
             updating = True
 
 
-    if col > 0 and symbols[row][col - 1] == '<':
+    if col > 0 and '<' in symbols[row][col - 1]:
         s = get_extreme(row, col-1, 0)
         if s > smallest:
             smallest = s
             updating = True
 
 
-    if row > 0 and symbols[row - 1][col] == '^':
+    if row > 0 and '^' in symbols[row - 1][col]:
         s = get_extreme(row-1, col, 0)
         if s > smallest:
             smallest = s
@@ -177,25 +184,25 @@ def update_comparison_notes(row, col):
     # now check for cells that are larger than this cell
     largest = 100
     updating = False
-    if symbols[row][col] == '<':
+    if '<' in symbols[row][col]:
         l = get_extreme(row, col+1, -1)
         if l < largest:
             largest = l
             updating = True
 
-    if row > 0 and symbols[row-1][col] == 'v':
+    if row > 0 and 'v' in symbols[row-1][col]:
         l = get_extreme(row-1, col, -1)
         if l < largest:
             largest = l
             updating = True
 
-    if col > 0 and symbols[row][col-1] == '>':
+    if col > 0 and '>' in symbols[row][col-1]:
         l = get_extreme(row, col-1, -1)
         if l < largest:
             largest = l
             updating = True
 
-    if symbols[row][col] == '^':
+    if '^' in symbols[row][col]:
         l = get_extreme(row+1, col, -1)
         if l < largest:
             largest = l
@@ -215,7 +222,7 @@ def update_all_comparison_notes():
         for j in range(width):
             if update_comparison_notes(i, j):
                 has_change = True
-                print("updated notes at " + str(i) + ", " + str(j))
+                #print("updated notes at " + str(i) + ", " + str(j))
     return has_change
 
 def only_one_option(row, col):
@@ -246,9 +253,11 @@ def update_all_notes():
                     has_change = True
     return has_change
 
-task, param = (network.get_puzzle(f"https://www.puzzle-futoshiki.com/futoshiki-4x4-easy/"))
+task, param = (network.get_puzzle(get_url))
 
 task = task.split(',')[:-1]
+print(task)
+
 # parse puzzle from get request
 for i in range(len(task)):
     # Letters after the initial character determine whether there are > or < symbols next to this cell
@@ -263,23 +272,27 @@ for i in range(len(task)):
         if j == 0:
             continue
         if char[j] == 'U':
-            symbols[y-1][x] = '^'
+            symbols[y-1][x] += '^'
         elif char[j] == 'D':
-            symbols[y][x] = 'v'
+            symbols[y][x] += 'v'
         elif char[j] == 'L':
-            symbols[y][x-1] = '<'
+            symbols[y][x-1] += '<'
         elif char[j] == 'R':
-            symbols[y][x] = '>'
+            symbols[y][x] += '>'
 
 has_change = True
 while has_change:
-    has_change = update_all_notes() or find_onlys() or update_all_comparison_notes() or check_all_only_one_option()
+    # Separate them so that python doesn't short-circuit as soon as one evaluates to true
+    note = update_all_notes() 
+    only = find_onlys() 
+    comparison = update_all_comparison_notes() 
+    one = check_all_only_one_option()
+
+    has_change = note or only or comparison or one
 
     print_board()
-    print(notes)
     input()
 
-       
 print_board()
 print(notes)
 
