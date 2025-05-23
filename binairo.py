@@ -185,17 +185,12 @@ def find_guaranteed_placements_row():
                 starts.append(j)
 
         for start in starts:
-            print("Has row? Start at " + str(start))
-            print(board[i])
             for j in range(width):
                 if j == start or j == start + 1 or j == start + 2 or board[i][j] != " ":
                     continue
                 else:
-                    print("Has row " + str(i))
-                    print(board[i])
                     board[i][j] = opposite
                     has_change = True
-                    print(board[i])
 
     return has_change
             
@@ -225,15 +220,12 @@ def find_guaranteed_placements_col():
                 if i == start or i == start + 1 or i == start + 2 or board[i][j] != " ":
                     continue
                 else:
-                    print("Has col " + str(i))
-                    #print(board[i])
                     board[i][j] = opposite
                     has_change = True
-                    #print(board[i])
 
     return has_change
 
-task, param = (network.get_puzzle(f"https://www.puzzle-binairo.com/binairo-10x10-hard"))
+task, param = (network.get_puzzle(f"https://www.puzzle-binairo.com/?size=4"))
 
 cur_index = 0
 # parse puzzle from get request
@@ -251,8 +243,6 @@ for char in task:
         y = math.floor(float(cur_index) / width)
         board[y][x] = char
         cur_index += 1
-       
-print_board()
 
 # now work on actually solving
 # find places with two consecutive pieces of the same colour
@@ -263,12 +253,10 @@ while has_change:
                     find_guaranteed_placements_row() or find_guaranteed_placements_col()
 
 
-print_board()
-
 solution = ""
 for row in board:
     for piece in row:
         solution += piece
 
 
-#submit(param, solution)
+network.submit("https://www.puzzle-binairo.com/binairo-10x10-easy", param, solution)

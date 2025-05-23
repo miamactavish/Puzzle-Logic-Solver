@@ -1,8 +1,8 @@
 import math
 import network
 
-get_url = "https://www.puzzle-futoshiki.com/futoshiki-7x7-easy/"
-curr_size = 7
+get_url = "https://www.puzzle-futoshiki.com/futoshiki-9x9-easy/"
+curr_size = 9
 width = curr_size
 height = curr_size
 board = []
@@ -256,7 +256,6 @@ def update_all_notes():
 task, param = (network.get_puzzle(get_url))
 
 task = task.split(',')[:-1]
-print(task)
 
 # parse puzzle from get request
 for i in range(len(task)):
@@ -290,10 +289,18 @@ while has_change:
 
     has_change = note or only or comparison or one
 
+solved = True
+solution = ""
+for row in board:
+    for cell in row:
+        solution += str(cell) + ","
+        if cell == 0:
+            solved = False
+
+if solved:
+    network.submit(get_url, param, solution[:-1])
+
+else:
+    print("Not solved")
     print_board()
-    input()
-
-print_board()
-print(notes)
-
-#submit(param, solution)
+    print(notes)
